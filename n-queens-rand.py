@@ -2,11 +2,19 @@ from random import shuffle
 from itertools import chain
 
 def init_queens(size: int) -> list[int]:
+    """
+        Initialize a random arrangement of n-queens.
+    """
     queen = list(range(size))
     shuffle(queen)
     return queen
 
-def compute_collisions(queen,dn,dp)->int:
+def compute_collisions(queen: list[int],dn: list[int],dp list[int])->int:
+    """
+        Initialize dn and dp, and return number of collisions.
+        queen should be a list with len=size.
+        dn & dp should be list of 0s with len=2*size -1.
+    """
     size = len(queen)
     # count queens on positive diagonals 
     # using zip(range) instead of enumerate to maintain symmetry with negative diagonals
@@ -25,10 +33,18 @@ def compute_collisions(queen,dn,dp)->int:
             collisions += diagonal-1
     return collisions
 
-def compute_attacks(queen, dn, np, attack) -> int:
+def compute_attacks(queen: list[int], dn: list[int], np: list[int], attack: list[int]) -> int:
+    """
+        Initialize attack, and return number of queens under attack.
+    """
     pass    
 
-def queen_search2(queen, C1 = 0.45, C2 = 32):
+def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
+    """
+        Search for a valid arrangement of queens.
+        Algorithm based on https://doi.org/10.1109/21.135698.
+        Takes a random starting arrangment of queens, returns valid solution to the n-queens problem.
+    """
     size = len(queen)
     # initialization
     dn = [0]*(size*2-1)
