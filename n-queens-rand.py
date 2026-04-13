@@ -33,7 +33,7 @@ def compute_collisions(queen: list[int],dn: list[int],dp list[int])->int:
             collisions += diagonal-1
     return collisions
 
-def compute_attacks(queen: list[int], dn: list[int], np: list[int], attack: list[int]) -> int:
+def compute_attacks(queen: list[int], dn: list[int], dp: list[int], attack: list[int]) -> int:
     """
         Initialize attack, and return number of queens under attack.
     """
