@@ -63,6 +63,18 @@ def compute_attacks(queen: list[int], dn: list[int], dp: list[int]) -> tuple[int
 
     return (len(attack), attack)
 
+def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int])->bool:
+    """
+       Check if a candidate swap will reduce collisions 
+    """
+    pass
+
+def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[int], collisions: list[int]):
+    """
+       Perform a swap 
+    """
+    pass
+
 def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     """
         Search for a valid arrangement of queens.
