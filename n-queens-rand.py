@@ -9,13 +9,15 @@ def init_queens(size: int) -> list[int]:
     shuffle(queen)
     return queen
 
-def compute_collisions(queen: list[int],dn: list[int],dp list[int])->int:
+def compute_collisions(queen: list[int])-> tuple[int, list[int], list[int]]:
     """
         Initialize dn and dp, and return number of collisions.
         queen should be a list with len=size.
-        dn & dp should be list of 0s with len=2*size -1.
+        returns (number of collisions, dn, dp).
     """
     size = len(queen)
+    dn = [0]*(2*size-1)
+    dp = [0]*(2*size-1)
     # count queens on positive diagonals 
     # using zip(range) instead of enumerate to maintain symmetry with negative diagonals
     for (row_index, col_index) in  enumerate(queen):
@@ -31,13 +33,35 @@ def compute_collisions(queen: list[int],dn: list[int],dp list[int])->int:
     for diagonal in dn + dp:
         if diagonal >= 2:
             collisions += diagonal-1
-    return collisions
+    return (collisions, dn, dp)
 
-def compute_attacks(queen: list[int], dn: list[int], dp: list[int], attack: list[int]) -> int:
+def compute_attacks(queen: list[int], dn: list[int], dp: list[int]) -> tuple[int, list[int]]:
     """
         Initialize attack, and return number of queens under attack.
     """
-    pass    
+    size = len(queen)
+
+    # get problematic negative diagonals
+    ncollisions_indices = []
+    for i,n in enumerate(dn):
+        if n>=2:
+            ncollisions_indices.append(i)
+            
+    # get problematic positive diagonals
+    pcollisions_indices = []
+    for i,n in enumerate(dp):
+        if n>=2:
+            pcollisions_indices.append(i-(size-1))
+
+    # check for queens on those diagonals
+    attack = []
+    for row,col in enumerate(queen):
+        if row+col in ncollisions_indices:
+            attack.append(row)         
+        elif row-col in pcollisions_indices:
+            attack.append(row)
+
+    return (len(attack), attack)
 
 def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     """
@@ -47,15 +71,13 @@ def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     """
     size = len(queen)
     # initialization
-    dn = [0]*(size*2-1)
-    dp = [0]*(size*2-1)
-    attack = []
-    collisions = compute_collisions(queen, dn, dp)
+    collisions, dn, dp = compute_collisions(queen)
     print(f"dn: {dn}")
     print(f"dp: {dp}")
     print(f"collisions: {collisions}")
     limit = C1*collisions
-    #number_of_attacks = compute_attacks(queen, dn, np, attack)
+    number_of_attacks, attacks = compute_attacks(queen, dn, dp)
+    print(f"attacks:{attacks}")
 
 def main():
     queen = init_queens(8)
