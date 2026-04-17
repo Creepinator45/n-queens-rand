@@ -76,10 +76,10 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
     if dp[row1 - queen[row1] + len(queen) - 1] >= 2:
         initial_collisions += dp[row1 - queen[row1] + len(queen) - 1] - 1
     if (dn[row2 + queen[row2]] >= 2 
-    and dn[row2 + queen[row2]] != dn[row1 + queen[row1]]): # Ensures we don't double count collisions
+    and row2 + queen[row2] != row1 + queen[row1]): # Ensures we don't double count collisions
         initial_collisions += dn[row2 + queen[row2]] -1
     if (dp[row2 - queen[row2] + len(queen) - 1] >= 2 
-    and dp[row2 - queen[row2] + len(queen) - 1] != dp[row1 - queen[row1] + len(queen) - 1]):
+    and row2 - queen[row2] + len(queen) - 1 != row1 - queen[row1] + len(queen) - 1):
         initial_collisions += dp[row2 - queen[row2] + len(queen) - 1] -1
     print(f"Initial collisisons: {initial_collisions}")
 
@@ -92,7 +92,7 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
     # We don't subtract one here because dn and dp aren't updated with this hypothetical swap, so we look for the entries being greater than 1
     swap_collisions += dn[row2 + queen[row1]] 
     swap_collisions += dn[row2 - queen[row1] + len(queen) - 1]
-    print(f"first additions, swap collisions {swap_collisions}")
+    print(f"first additions for queen in {row2},{queen[row1]} swap collisions {swap_collisions}")
     # Now updates this sum based on the pre-swapped queens who are still in dp and dn and the other swapped queen
     # First, removes a collision if it is on the same diagonal as a pre-swapped queen as that piece isn't there any more
     if (row2 + queen[row1] == row1 + queen[row1]
@@ -108,6 +108,7 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
         print(f"checking new queens, swap collisions {swap_collisions}")
     print(f"swap collisions for first queen {swap_collisions}")
 
+    print(f"Now consider {row1}, {queen[row2]}")
     if row1 + queen[row2] != row2 + queen[row1]: # Making sure we don't double count collisions
         swap_collisions += dn[row1 + queen[row2]] 
         print(f"not on same diagonal, add all, swap collisions {swap_collisions}")
