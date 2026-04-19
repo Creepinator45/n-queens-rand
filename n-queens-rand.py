@@ -1,5 +1,17 @@
-from random import shuffle, choice
+from random import shuffle, choice, randrange
 from itertools import chain
+
+def dbg(name, val):
+    print(f"{name}: {val}")
+    return val
+
+def dn_indexer(row: int, col: int, size: int) -> int:
+    # queens that share a negative diagonal have the same sum
+    return row + col
+def dp_indexer(row: int, col: int, size: int) -> int:
+    # queens that share a positive diagonal have the same difference
+    # offset to give positive indices
+    return row - col + size - 1
 
 def init_queens(size: int) -> list[int]:
     """
@@ -20,14 +32,9 @@ def compute_collisions(queen: list[int])-> tuple[int, list[int], list[int]]:
     dp = [0]*(2*size-1)
     # count queens on positive diagonals 
     # using zip(range) instead of enumerate to maintain symmetry with negative diagonals
-    for (row_index, col_index) in  enumerate(queen):
-        # queens that share a negative diagonal have the same sum
-        sum = row_index + col_index
-        dn[sum] += 1
-        # queens that share a positive diagonal have the same difference
-        # offset to give positive indices
-        offset_dif = row_index-col_index + size-1
-        dp[offset_dif] += 1
+    for (row, col) in  enumerate(queen):
+        dn[dn_indexer(row, col, size)] += 1
+        dp[dp_indexer(row, col, size)] += 1
     # count total collisions
     collisions = 0
     for diagonal in dn + dp:
@@ -51,14 +58,14 @@ def compute_attacks(queen: list[int], dn: list[int], dp: list[int]) -> tuple[int
     pcollisions_indices = []
     for i,n in enumerate(dp):
         if n>=2:
-            pcollisions_indices.append(i-(size-1))
+            pcollisions_indices.append(i)
 
     # check for queens on those diagonals
     attack = []
     for row,col in enumerate(queen):
-        if row+col in ncollisions_indices:
+        if dn_indexer(row, col, size) in ncollisions_indices:
             attack.append(row)         
-        elif row-col in pcollisions_indices:
+        elif dp_indexer(row, col, size) in pcollisions_indices:
             attack.append(row)
 
     return (len(attack), attack)
@@ -67,20 +74,21 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
     """
        Check if a candidate swap will reduce collisions 
     """
-    
+    #I think the way we're checking collisions here might be bugged. 
+    size = len(queen)
     # Computes the number of collision of each of the four original diagonals, and adds them to the total initital collisions
     # if they include two or more queens
     initial_collisions = 0 
-    if dn[row1 + queen[row1]] >= 2:
-        initial_collisions += dn[row1 + queen[row1]] -1 # To just count the number of collisions, remove the queen we are considering
-    if dp[row1 - queen[row1] + len(queen) - 1] >= 2:
-        initial_collisions += dp[row1 - queen[row1] + len(queen) - 1] - 1
-    if (dn[row2 + queen[row2]] >= 2 
-    and row2 + queen[row2] != row1 + queen[row1]): # Ensures we don't double count collisions
-        initial_collisions += dn[row2 + queen[row2]] -1
-    if (dp[row2 - queen[row2] + len(queen) - 1] >= 2 
-    and row2 - queen[row2] + len(queen) - 1 != row1 - queen[row1] + len(queen) - 1):
-        initial_collisions += dp[row2 - queen[row2] + len(queen) - 1] -1
+    if dn[dn_indexer(row1, queen[row1], size)] >= 2:
+        initial_collisions += dn[dn_indexer(row1, queen[row1], size)] -1 # To just count the number of collisions, remove the queen we are considering
+    if dp[dp_indexer(row1, queen[row1], size)] >= 2:
+        initial_collisions += dp[dp_indexer(row1, queen[row1], size)] -1
+    if (dn[dn_indexer(row2, queen[row2], size)] >= 2 
+    and dn_indexer(row2, queen[row2], size) != dn_indexer(row1, queen[row1], size)): # Ensures we don't double count collisions
+        initial_collisions += dn[dn_indexer(row2, queen[row2], size)] -1
+    if (dp[dp_indexer(row2, queen[row2], size)] >= 2 
+    and dp_indexer(row2, queen[row2], size) != dp_indexer(row1, queen[row1], size)):
+        initial_collisions += dp[dp_indexer(row2, queen[row2], size)] -1
 
     # Computes the number of collisions on the four diagonals formed after swapping the row indices of the two queens
     swap_collisions = 0 
@@ -88,24 +96,25 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
 
     # Add the collisions on the diagonals of the first swapped queen
     # We don't subtract one here because dn and dp aren't updated with this hypothetical swap, so we look for the entries being greater than 1
-    swap_collisions += dn[row2 + queen[row1]] 
-    swap_collisions += dp[row2 - queen[row1] + len(queen) - 1]
+    swap_collisions += dn[dn_indexer(row2, queen[row1], size)] 
+    swap_collisions += dp[dp_indexer(row2, queen[row1], size)]
     
-    if (row2 + queen[row1] == row1 + queen[row2] 
-    or row2 - queen[row1] + len(queen) - 1 == row1 - queen[row2] + len(queen) - 1): # Because these new swapped queens aren't in dn and dp we need to manually check if they form a collision
+    if (dn_indexer(row2, queen[row1], size) == dn_indexer(row1, queen[row2], size)
+    or dp_indexer(row2, queen[row1], size) == dp_indexer(row1, queen[row2], size)):
         swap_collisions += 1
     
-    if row1 + queen[row2] != row2 + queen[row1]: # Making sure we don't double count collisions
-        swap_collisions += dn[row1 + queen[row2]] 
-    if row1 - queen[row2] + len(queen) - 1 != row2 - queen[row1] + len(queen) - 1:
-        swap_collisions += dp[row1 - queen[row2] + len(queen) - 1] 
+    if dn_indexer(row1, queen[row2], size) != dn_indexer(row2, queen[row1], size): # Making sure we don't double count collisions
+        swap_collisions += dn[dn_indexer(row1, queen[row2], size)]
+    if dp_indexer(row1, queen[row2], size) != dp_indexer(row2, queen[row1], size): # Making sure we don't double count collisions
+        swap_collisions += dp[dp_indexer(row1, queen[row2], size)]
 
     return (swap_collisions < initial_collisions, swap_collisions)
 
-def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[int], collisions: list[int]):
+def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[int], collisions: int):
     """
        Perform a swap 
     """
+    size = len(queen)
     (swap_ok_bool, swap_collisions) = swap_ok(row1, row2, queen, dn, dp)
     if swap_ok_bool:
         # Swaps the positions in the array queen
@@ -116,14 +125,14 @@ def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[in
 
         # Updates dn and dp by adding one to the number of queens on the new diagonals
         # and removing one from the old diagonals
-        dn[row2 + queen[row1]] += 1
-        dp[row2 - queen[row1] + len(queen) - 1] += 1
-        dn[row1 + queen[row2]] += 1
-        dp[row1 - queen[row2] + len(queen) - 1] += 1
-        dn[row1 + queen[row1]] -= 1
-        dp[row1 - queen[row1] + len(queen) - 1] -= 1
-        dn[row2 + queen[row2]] -= 1
-        dp[row2 - queen[row2] + len(queen) - 1] -= 1
+        dn[dn_indexer(row2, queen[row1], size)] += 1
+        dp[dp_indexer(row2, queen[row1], size)] += 1
+        dn[dn_indexer(row1, queen[row2], size)] += 1
+        dp[dp_indexer(row1, queen[row2], size)] += 1
+        dn[dn_indexer(row1, queen[row1], size)] -= 1
+        dp[dp_indexer(row1, queen[row1], size)] -= 1
+        dn[dn_indexer(row2, queen[row2], size)] -= 1
+        dp[dp_indexer(row2, queen[row2], size)] -= 1
 
 def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     """
@@ -142,24 +151,37 @@ def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     print(f"attack: {attack}")
     loopcount = 0
 
+    for _ in range(20):
+        attacked_queen = attack[1]
+        
+        rand_queen = randrange(size-2)
+        if rand_queen >= attacked_queen:
+            rand_queen += 1
+
+        print(f"attacked: {attacked_queen}")
+        print(f"rand: {rand_queen}")
+        if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]:
+            perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
+        print(queen)
+        print(f"collisions: {collisions}")
     # Search
-    while collisions != 0:
-        while loopcount <= C2 * size:
-            for k in range(number_of_attacks):
-                # Chooses an attacked queen and another random queen
-                attacked_queen = attack[k]
-                edited_queen = queen.copy()
-                edited_queen.pop(attacked_queen)
-                rand_queen = choice(edited_queen)
-                if swap_ok(attacked_queen, rand_queen, queen, dn, dp):
-                    perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
-                    if collisions == 0:
-                        return queen
-                    if collisions < limit:
-                        limit = C1 * collisions
-                        number_of_attacks, attack = compute_attacks(queen, dn, dp) # ??? Should this just reset num of attacks or the list attacks as well?
-            loopcount += number_of_attacks
-    return queen
+    #while collisions != 0:
+        ##while loopcount <= C2 * size:
+            #for k in range(number_of_attacks):
+                ## Chooses an attacked queen and another random queen
+                #attacked_queen = attack[k]
+                #edited_queen = queen.copy()
+                #edited_queen.pop(attacked_queen)
+                #rand_queen = choice(edited_queen)
+                #if swap_ok(attacked_queen, rand_queen, queen, dn, dp):
+                    #perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
+                    #if collisions == 0:
+                        #return queen
+                    #if collisions < limit:
+                        #limit = C1 * collisions
+                        #number_of_attacks, attack = compute_attacks(queen, dn, dp) # ??? Should this just reset num of attacks or the list attacks as well?
+            #loopcount += number_of_attacks
+    #return queen
 
 
 def main():
