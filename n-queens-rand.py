@@ -110,19 +110,14 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
 
     return (swap_collisions < initial_collisions, swap_collisions)
 
-def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[int], collisions: int):
+def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[int], collisions: int) -> int:
     """
        Perform a swap 
+       returns the new number of collisions
     """
     size = len(queen)
     (swap_ok_bool, swap_collisions) = swap_ok(row1, row2, queen, dn, dp)
     if swap_ok_bool:
-        # Swaps the positions in the array queen
-        queen[row1], queen[row2] = queen[row2], queen[row1]
-
-        # Updates collisions from the value returned from swap_ok
-        collisions = swap_collisions
-
         # Updates dn and dp by adding one to the number of queens on the new diagonals
         # and removing one from the old diagonals
         dn[dn_indexer(row2, queen[row1], size)] += 1
@@ -133,6 +128,11 @@ def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[in
         dp[dp_indexer(row1, queen[row1], size)] -= 1
         dn[dn_indexer(row2, queen[row2], size)] -= 1
         dp[dp_indexer(row2, queen[row2], size)] -= 1
+    
+        # Swaps the positions in the array queen
+        queen[row1], queen[row2] = queen[row2], queen[row1]
+
+    return swap_collisions
 
 def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     """
@@ -161,7 +161,7 @@ def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
         print(f"attacked: {attacked_queen}")
         print(f"rand: {rand_queen}")
         if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]:
-            perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
+            collisions = perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
         print(queen)
         print(f"collisions: {collisions}")
     # Search
