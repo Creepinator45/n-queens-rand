@@ -106,7 +106,24 @@ def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[in
     """
        Perform a swap 
     """
-    pass
+    (swap_ok_bool, swap_collisions) = swap_ok(row1, row2, queen, dn, dp)
+    if swap_ok_bool:
+        # Swaps the positions in the array queen
+        queen[row1], queen[row2] = queen[row2], queen[row1]
+
+        # Updates collisions from the value returned from swap_ok
+        collisions = swap_collisions
+
+        # Updates dn and dp by adding one to the number of queens on the new diagonals
+        # and removing one from the old diagonals
+        dn[row2 + queen[row1]] += 1
+        dp[row2 - queen[row1] + len(queen) - 1] += 1
+        dn[row1 + queen[row2]] += 1
+        dp[row1 - queen[row2] + len(queen) - 1] += 1
+        dn[row1 + queen[row1]] -= 1
+        dp[row1 - queen[row1] + len(queen) - 1] -= 1
+        dn[row2 + queen[row2]] -= 1
+        dp[row2 - queen[row2] + len(queen) - 1] -= 1
 
 def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     """
@@ -121,13 +138,34 @@ def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     print(f"dp: {dp}")
     print(f"collisions: {collisions}")
     limit = C1*collisions
-    number_of_attacks, attacks = compute_attacks(queen, dn, dp)
-    print(f"attacks:{attacks}")
+    number_of_attacks, attack = compute_attacks(queen, dn, dp)
+    print(f"attack: {attack}")
+    loopcount = 0
+
+    # Search
+    while collisions != 0:
+        while loopcount <= C2 * size:
+            for k in range(number_of_attacks):
+                # Chooses an attacked queen and another random queen
+                attacked_queen = attack[k]
+                edited_queen = queen.copy()
+                edited_queen.pop(attacked_queen)
+                rand_queen = choice(edited_queen)
+                if swap_ok(attacked_queen, rand_queen, queen, dn, dp):
+                    perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
+                    if collisions == 0:
+                        return queen
+                    if collisions < limit:
+                        limit = C1 * collisions
+                        number_of_attacks, attack = compute_attacks(queen, dn, dp) # ??? Should this just reset num of attacks or the list attacks as well?
+            loopcount += number_of_attacks
+    return queen
+
 
 def main():
     queen = init_queens(8)
-    print(queen)
-    queen_search2(queen)
+    print(f"Initial positions (queen): {queen}")
+    print(f"Ending positions: {queen_search2(queen)}")
 
 
 if __name__ == "__main__":
