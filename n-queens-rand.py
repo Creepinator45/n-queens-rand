@@ -157,8 +157,7 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
         for _ in range(C2*size):
             if collisions <= 0:
                 return queen
-            attacked_queen = attack[1]
-            atk_index += 1
+            attacked_queen = attack[atk_index]
             rand_queen = randrange(size-2)
             if rand_queen >= attacked_queen:
                 rand_queen += 1
@@ -167,6 +166,7 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
             print(f"rand: {rand_queen}")
             if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]:
                 collisions = perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
+                atk_index += 1
                 if collisions < limit:
                     limit = C1 * collisions
                     number_of_attacks, attack = compute_attacks(queen, dn, dp)
@@ -199,7 +199,7 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
 
 
 def main():
-    print(f"Ending positions: {queen_search2(8)}")
+    print(f"Ending positions: {queen_search2(100)}")
 
 
 if __name__ == "__main__":
