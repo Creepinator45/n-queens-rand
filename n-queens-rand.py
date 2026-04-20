@@ -90,7 +90,7 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
         removed_collisions -= 1 # if both queens are on the same diagonal, and are the only queens on that diagonal, the collisions are reduced by 1 not 2
     if dp_indexer(row1, queen[row1], size) == dp_indexer(row2, queen[row2], size) and dp[dp_indexer(row1, queen[row1], size)] == 2:
         removed_collisions -= 1 
-    print(removed_collisions)
+    #print(removed_collisions)
 
     # counts the number of collisions that will be added after the chosen queens are moved
     added_collisions = 0 
@@ -107,7 +107,7 @@ def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int]
         added_collisions += 1 # if both queens are on the same diagonal, and that diagonal is empty, then adding them adds 1 collisions not 0
     if dp_indexer(row1, queen[row2], size) == dp_indexer(row2, queen[row1], size) and dp[dp_indexer(row1, queen[row2], size)] == 0:
         added_collisions += 1 
-    print(added_collisions)
+    #print(added_collisions)
     return (added_collisions < removed_collisions, added_collisions-removed_collisions)
 
 def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[int], collisions: int) -> int:
@@ -168,7 +168,7 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
                 if collisions < limit:
                     limit = C1 * collisions
                     number_of_attacks, attack = compute_attacks(queen, dn, dp)
-            print(queen)
+            #print(queen)
             print(f"collisions: {collisions}")
         return None
     while True: # retry the algorithm until it succeeds
