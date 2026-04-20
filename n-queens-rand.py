@@ -157,7 +157,7 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
         for _ in range(C2*size):
             if collisions <= 0:
                 return queen
-            attacked_queen = attack[atk_index]
+            attacked_queen = attack[1]
             atk_index += 1
             rand_queen = randrange(size-2)
             if rand_queen >= attacked_queen:
