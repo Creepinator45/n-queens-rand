@@ -161,8 +161,8 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
             if rand_queen >= attacked_queen: 
                 rand_queen += 1
 
-            print(f"attacked: {attacked_queen}")
-            print(f"rand: {rand_queen}")
+            print(f"attacked queen: {attacked_queen}")
+            print(f"random queen: {rand_queen}")
             if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]: #dbg function just prints and returns the value, lets me print for debugging purposes without messing up code structure
                 collisions = perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
                 if collisions < limit:
@@ -171,9 +171,12 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
             #print(queen)
             print(f"collisions: {collisions}")
         return None
+    attempts = 0
     while True: # retry the algorithm until it succeeds
         out = fallible()
+        attempts += 1
         if out is not None:
+            print(f"ended after {attempts} attempts")
             return out
 
 def main():
