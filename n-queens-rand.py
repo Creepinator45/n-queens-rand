@@ -153,17 +153,17 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
         print(f"attack: {attack}")
         loopcount = 0
 
-        for _ in range(C2*size):
-            if collisions <= 0:
+        for _ in range(C2*size): # cut losses and restart after enough time
+            if collisions <= 0: # needs to check for collisions at the start, otherwise it could crash trying to get an attacked queen when none exist
                 return queen
-            attacked_queen = choice(attack) #I got better results by randomly selecting the first queen as well from the attacked queens
+            attacked_queen = choice(attack) # I got better results by randomly selecting the first queen as well from the attacked queens
             rand_queen = randrange(size-2)
-            if rand_queen >= attacked_queen:
+            if rand_queen >= attacked_queen: 
                 rand_queen += 1
 
             print(f"attacked: {attacked_queen}")
             print(f"rand: {rand_queen}")
-            if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]:
+            if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]: #dbg function just prints and returns the value, lets me print for debugging purposes without messing up code structure
                 collisions = perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
                 if collisions < limit:
                     limit = C1 * collisions
@@ -171,29 +171,10 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
             print(queen)
             print(f"collisions: {collisions}")
         return None
-    while True:
+    while True: # retry the algorithm until it succeeds
         out = fallible()
         if out is not None:
             return out
-    # Search
-    #while collisions != 0:
-        ##while loopcount <= C2 * size:
-            #for k in range(number_of_attacks):
-                ## Chooses an attacked queen and another random queen
-                #attacked_queen = attack[k]
-                #edited_queen = queen.copy()
-                #edited_queen.pop(attacked_queen)
-                #rand_queen = choice(edited_queen)
-                #if swap_ok(attacked_queen, rand_queen, queen, dn, dp):
-                    #perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
-                    #if collisions == 0:
-                        #return queen
-                    #if collisions < limit:
-                        #limit = C1 * collisions
-                        #number_of_attacks, attack = compute_attacks(queen, dn, dp) # ??? Should this just reset num of attacks or the list attacks as well?
-            #loopcount += number_of_attacks
-    #return queen
-
 
 def main():
     print(f"Ending positions: {queen_search2(8)}")
