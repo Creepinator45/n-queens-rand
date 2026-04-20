@@ -73,42 +73,42 @@ def compute_attacks(queen: list[int], dn: list[int], dp: list[int]) -> tuple[int
 def swap_ok(row1: int, row2: int, queen: list[int], dn: list[int], dp: list[int])->(bool,int):
     """
        Check if a candidate swap will reduce collisions 
+       Returns whether the swap reduces collisions, and the difference between the intitial and swapped collisions
     """
-    #I think the way we're checking collisions here might be bugged. 
     size = len(queen)
-    # Computes the number of collision of each of the four original diagonals, and adds them to the total initital collisions
-    # if they include two or more queens
-    initial_collisions = 0 
+    # counts the number of collisions that will be removed if the chosen queens are moved
+    removed_collisions = 0 
     if dn[dn_indexer(row1, queen[row1], size)] >= 2:
-        initial_collisions += dn[dn_indexer(row1, queen[row1], size)] -1 # To just count the number of collisions, remove the queen we are considering
+        removed_collisions += 1 # on a problematic diagonal, removing 1 queen will remove 1 collisions
     if dp[dp_indexer(row1, queen[row1], size)] >= 2:
-        initial_collisions += dp[dp_indexer(row1, queen[row1], size)] -1
-    if (dn[dn_indexer(row2, queen[row2], size)] >= 2 
-    and dn_indexer(row2, queen[row2], size) != dn_indexer(row1, queen[row1], size)): # Ensures we don't double count collisions
-        initial_collisions += dn[dn_indexer(row2, queen[row2], size)] -1
-    if (dp[dp_indexer(row2, queen[row2], size)] >= 2 
-    and dp_indexer(row2, queen[row2], size) != dp_indexer(row1, queen[row1], size)):
-        initial_collisions += dp[dp_indexer(row2, queen[row2], size)] -1
+        removed_collisions += 1
+    if dn[dn_indexer(row2, queen[row2], size)] >= 2:
+        removed_collisions += 1 
+    if dp[dp_indexer(row2, queen[row2], size)] >= 2:
+        removed_collisions += 1
+    if dn_indexer(row1, queen[row1], size) == dn_indexer(row2, queen[row2], size) and dn[dn_indexer(row1, queen[row1], size)] == 2:
+        removed_collisions -= 1 # if both queens are on the same diagonal, and are the only queens on that diagonal, the collisions are reduced by 1 not 2
+    if dp_indexer(row1, queen[row1], size) == dp_indexer(row2, queen[row2], size) and dp[dp_indexer(row1, queen[row1], size)] == 2:
+        removed_collisions -= 1 
+    print(removed_collisions)
 
-    # Computes the number of collisions on the four diagonals formed after swapping the row indices of the two queens
-    swap_collisions = 0 
+    # counts the number of collisions that will be added after the chosen queens are moved
+    added_collisions = 0 
     # The swap is performed by moving queen (row1, col1) into (row2, col1) and queen (row2, col2) into (row1, col2)
-
-    # Add the collisions on the diagonals of the first swapped queen
-    # We don't subtract one here because dn and dp aren't updated with this hypothetical swap, so we look for the entries being greater than 1
-    swap_collisions += dn[dn_indexer(row2, queen[row1], size)] 
-    swap_collisions += dp[dp_indexer(row2, queen[row1], size)]
-    
-    if (dn_indexer(row2, queen[row1], size) == dn_indexer(row1, queen[row2], size)
-    or dp_indexer(row2, queen[row1], size) == dp_indexer(row1, queen[row2], size)):
-        swap_collisions += 1
-    
-    if dn_indexer(row1, queen[row2], size) != dn_indexer(row2, queen[row1], size): # Making sure we don't double count collisions
-        swap_collisions += dn[dn_indexer(row1, queen[row2], size)]
-    if dp_indexer(row1, queen[row2], size) != dp_indexer(row2, queen[row1], size): # Making sure we don't double count collisions
-        swap_collisions += dp[dp_indexer(row1, queen[row2], size)]
-
-    return (swap_collisions < initial_collisions, swap_collisions)
+    if dn[dn_indexer(row2, queen[row1], size)] >= 1:
+        added_collisions += 1 # adding a queen to a diagonal will always add a collisions if there's already a queen on that diagonal
+    if dp[dp_indexer(row2, queen[row1], size)] >= 1:
+        added_collisions += 1
+    if dn[dn_indexer(row1, queen[row2], size)] >= 1:
+        added_collisions += 1 
+    if dp[dp_indexer(row1, queen[row2], size)] >= 1:
+        added_collisions += 1
+    if dn_indexer(row1, queen[row2], size) == dn_indexer(row2, queen[row1], size) and dn[dn_indexer(row1, queen[row2], size)] == 0:
+        added_collisions += 1 # if both queens are on the same diagonal, and that diagonal is empty, then adding them adds 1 collisions not 0
+    if dp_indexer(row1, queen[row2], size) == dp_indexer(row2, queen[row1], size) and dp[dp_indexer(row1, queen[row2], size)] == 0:
+        added_collisions += 1 
+    print(added_collisions)
+    return (added_collisions < removed_collisions, added_collisions-removed_collisions)
 
 def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[int], collisions: int) -> int:
     """
@@ -132,7 +132,7 @@ def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[in
         # Swaps the positions in the array queen
         queen[row1], queen[row2] = queen[row2], queen[row1]
 
-    return swap_collisions
+    return collisions + swap_collisions
 
 def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
     """
