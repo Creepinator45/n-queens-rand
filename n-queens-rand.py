@@ -152,12 +152,13 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
         number_of_attacks, attack = compute_attacks(queen, dn, dp)
         print(f"attack: {attack}")
         loopcount = 0
+        atk_index = 0
 
         for _ in range(C2*size):
             if collisions <= 0:
                 return queen
-            attacked_queen = attack[1]
-            
+            attacked_queen = attack[atk_index]
+            atk_index += 1
             rand_queen = randrange(size-2)
             if rand_queen >= attacked_queen:
                 rand_queen += 1
@@ -169,6 +170,7 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
                 if collisions < limit:
                     limit = C1 * collisions
                     number_of_attacks, attack = compute_attacks(queen, dn, dp)
+                    atk_index = 0
             print(queen)
             print(f"collisions: {collisions}")
         return None
