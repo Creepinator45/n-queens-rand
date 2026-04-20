@@ -134,36 +134,48 @@ def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[in
 
     return collisions + swap_collisions
 
-def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
+def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
     """
         Search for a valid arrangement of queens.
         Algorithm based on https://doi.org/10.1109/21.135698.
         Takes a random starting arrangment of queens, returns valid solution to the n-queens problem.
     """
-    size = len(queen)
-    # initialization
-    collisions, dn, dp = compute_collisions(queen)
-    print(f"dn: {dn}")
-    print(f"dp: {dp}")
-    print(f"collisions: {collisions}")
-    limit = C1*collisions
-    number_of_attacks, attack = compute_attacks(queen, dn, dp)
-    print(f"attack: {attack}")
-    loopcount = 0
-
-    for _ in range(20):
-        attacked_queen = attack[1]
-        
-        rand_queen = randrange(size-2)
-        if rand_queen >= attacked_queen:
-            rand_queen += 1
-
-        print(f"attacked: {attacked_queen}")
-        print(f"rand: {rand_queen}")
-        if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]:
-            collisions = perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
-        print(queen)
+    def fallible() -> None|list[int]:
+        # initialization
+        queen = init_queens(size)
+        print(f"Initial positions (queen): {queen}")
+        collisions, dn, dp = compute_collisions(queen)
+        print(f"dn: {dn}")
+        print(f"dp: {dp}")
         print(f"collisions: {collisions}")
+        limit = C1*collisions
+        number_of_attacks, attack = compute_attacks(queen, dn, dp)
+        print(f"attack: {attack}")
+        loopcount = 0
+
+        for _ in range(C2*size):
+            if collisions <= 0:
+                return queen
+            attacked_queen = attack[1]
+            
+            rand_queen = randrange(size-2)
+            if rand_queen >= attacked_queen:
+                rand_queen += 1
+
+            print(f"attacked: {attacked_queen}")
+            print(f"rand: {rand_queen}")
+            if dbg("swap_ok", swap_ok(attacked_queen, rand_queen, queen, dn, dp))[0]:
+                collisions = perform_swap(attacked_queen, rand_queen, queen, dn, dp, collisions)
+                if collisions < limit:
+                    limit = C1 * collisions
+                    number_of_attacks, attack = compute_attacks(queen, dn, dp)
+            print(queen)
+            print(f"collisions: {collisions}")
+        return None
+    while True:
+        out = fallible()
+        if out is not None:
+            return out
     # Search
     #while collisions != 0:
         ##while loopcount <= C2 * size:
@@ -185,9 +197,7 @@ def queen_search2(queen: list[int], C1 = 0.45, C2 = 32) -> list[int]:
 
 
 def main():
-    queen = init_queens(8)
-    print(f"Initial positions (queen): {queen}")
-    print(f"Ending positions: {queen_search2(queen)}")
+    print(f"Ending positions: {queen_search2(8)}")
 
 
 if __name__ == "__main__":
