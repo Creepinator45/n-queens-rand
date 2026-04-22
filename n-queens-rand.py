@@ -1,5 +1,6 @@
 from random import shuffle, choice, randrange
 from itertools import chain
+import matplotlib.pyplot as plt
 
 def dbg(name, val):
     print(f"{name}: {val}")
@@ -134,13 +135,13 @@ def perform_swap(row1: int, row2:int, queen:list[int], dn: list[int], dp:list[in
 
     return collisions + swap_collisions
 
-def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
+def queen_search2(size = int, C1 = 0.45, C2 = 32, do_pauses = False) -> list[int]:
     """
         Search for a valid arrangement of queens.
         Algorithm based on https://doi.org/10.1109/21.135698.
         Takes a random starting arrangment of queens, returns valid solution to the n-queens problem.
     """
-    def fallible() -> None|list[int]:
+    def fallible(do_pauses) -> None|list[int]:
         # initialization
         queen = init_queens(size)
         print(f"Initial positions (queen): {queen}")
@@ -152,6 +153,10 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
         number_of_attacks, attack = compute_attacks(queen, dn, dp)
         print(f"attack: {attack}")
         loopcount = 0
+        if do_pauses:
+            do_cont = input()
+            if do_cont == "c":
+                do_pauses = False
 
         for _ in range(C2*size): # cut losses and restart after enough time
             if collisions <= 0: # needs to check for collisions at the start, otherwise it could crash trying to get an attacked queen when none exist
@@ -170,18 +175,22 @@ def queen_search2(size = int, C1 = 0.45, C2 = 32) -> list[int]:
                     number_of_attacks, attack = compute_attacks(queen, dn, dp)
             #print(queen)
             print(f"collisions: {collisions}")
+            if do_pauses:
+                do_cont = input()
+                if do_cont == "c":
+                    do_pauses = False
         return None
     attempts = 0
     while True: # retry the algorithm until it succeeds
-        out = fallible()
+        out = fallible(do_pauses)
         attempts += 1
         if out is not None:
             print(f"ended after {attempts} attempts")
             return out
 
 def main():
-    print(f"Ending positions: {queen_search2(8)}")
-
+    
+    print(f"Ending positions: {queen_search2(1000, do_pauses=False)}")
 
 if __name__ == "__main__":
     main()
